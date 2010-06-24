@@ -5,7 +5,7 @@ use strict;
 BEGIN {
     use Exporter ();
     use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @endtime);
-    $VERSION     = '0.04';
+    $VERSION     = '0.10';
     @ISA         = qw(Exporter);
     #Give a hoot don't pollute, do not export more than needed by default
     @EXPORT      = qw();
@@ -52,55 +52,83 @@ sub duration {
 	my ($esec,$emin,$ehour,$emday,$emon,$eyear,$ewday,$eyday,$eisdst) = localtime($end);
 	my ($dsec,$dmin,$dhour,$dmday,$dmon,$dyear,$dwday,$dyday,$disdst) = localtime($duration);
 
-	my $daysin = int($dyday / 7) * 5;
-	my $daysleft = $dyday % 7;
+	my $daysin;
+	my $daysleft;
+
 	
 
-	my $startloop = ($swday)%7;
-	my $endloop = $startloop + $daysleft;
+	if($eyday - $syday >= 2) { 
+		$daysin = int($dyday / 7) * 5;
+		$daysleft = $dyday % 7;
+			
+		my $startloop = ($swday)%7;
+		my $endloop = $startloop + $daysleft - 1;
 	
-	for (my $i = $startloop;$i<=$endloop;$i++) {
-		my $wday = $i%7;
+		for (my $i = $startloop;$i<=$endloop;$i++) {
+			my $wday = $i%7;
 			if(defined $self->{WORKDAYS}->{$wday}) {
 				$daysin++;
 			}
-	}
-	
-	# Count valid hours in first day
-	my $seconds = 0;
-	if($dyday > 1 && defined $self->{WORKDAYS}->{$swday}) {
-		$daysin--;
-		if($shour*60 + $smin <= $self->{startworkmin}) {
-			$daysin++;			
-		} else {
-			my $end_seconds = $endtime[0] * 3600 + $endtime[1] * 60;
-			my $start_seconds = $shour * 3600 + $smin * 60 + $ssec;
-			$seconds = $end_seconds - $start_seconds;
 		}
 		
-	}
+	
 		
-	# Count valid hours in last day
-	if($dyday > 2 && defined $self->{WORKDAYS}->{$ewday}) {
-		$daysin--;
+	} 
+	
+		
+	# Count valid hours in first day
+	my $seconds = 0;
+	if($duration != ($dyday * 24 * 60 * 60)) {
+		
+		
+		if( defined $self->{WORKDAYS}->{$swday}) {
+		
+			my $end_seconds = $ehour * 3600 + $emin * 60 + $esec;
+			my $end_day = $endtime[0] * 3600 + $endtime[1] * 60;
 
-		if($ehour * 60 + $emin >= $self->{startworkmin}) {
+			
+			if(($end_seconds > $end_day) || $eyday - $syday >= 1 ) {
 
-			if($ehour * 60 + $emin >= $self->{endworkmin} ) {
-				$daysin++;
-				
-			} else {
-						
-				my $start_seconds = $starttime[0] * 3600 + $starttime[1] * 60;
-				my $end_seconds = $ehour * 3600 + $emin * 60 + $esec;
-				$seconds = $seconds + ($end_seconds - $start_seconds);
+				$end_seconds = $end_day;
+			}
+			
+			
+			my $start_seconds = $shour * 3600 + $smin * 60 + $ssec;
+			$seconds = $end_seconds - $start_seconds;
+
+		}
+			
+		# Count valid hours in last day
+		if($eyday > $syday && defined $self->{WORKDAYS}->{$ewday}  ) {
+	
+	
+			if($ehour * 60 + $emin >= $self->{startworkmin}) {
+	
+									
+					my $start_seconds = $starttime[0] * 3600 + $starttime[1] * 60;
+					my $end_seconds = $ehour * 3600 + $emin * 60 + $esec;
+					$seconds = $seconds + ($end_seconds - $start_seconds);
+		
 			}
 		}
 	}
+	
 	
 	$seconds = $seconds + $daysin * $self->{worksecs};
 	return $seconds;
 	
+}
+
+sub workTimeString {
+	
+	my $self = shift;
+	my $seconds = shift;
+	
+	
+	my $days = int($seconds/(8*3600));
+	my $minutes = int($seconds%(8*3600));
+	my ($ssec,$smin,$shour,$smday,$smon,$syear,$swday,$syday,$sisdst) = gmtime($minutes);
+	return "$days days $shour hours $smin minutes";
 }
 
 
