@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Time-Business
-version:            0.10
+version:            0.11
 abstract:           Business Time Between Two Times
 author:
     - David Peters (davidp@electronf.com)

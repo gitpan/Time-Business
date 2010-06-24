@@ -5,7 +5,7 @@ use strict;
 BEGIN {
     use Exporter ();
     use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @endtime);
-    $VERSION     = '0.10';
+    $VERSION     = '0.11';
     @ISA         = qw(Exporter);
     #Give a hoot don't pollute, do not export more than needed by default
     @EXPORT      = qw();
@@ -125,8 +125,9 @@ sub workTimeString {
 	my $seconds = shift;
 	
 	
-	my $days = int($seconds/(8*3600));
-	my $minutes = int($seconds%(8*3600));
+	
+	my $days = int($seconds/$self->{worksecs});
+	my $minutes = int($seconds%$self->{worksecs});
 	my ($ssec,$smin,$shour,$smday,$smon,$syear,$swday,$syday,$sisdst) = gmtime($minutes);
 	return "$days days $shour hours $smin minutes";
 }
