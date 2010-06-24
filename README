@@ -35,6 +35,11 @@ METHODS
     Returns the number of business seconds between $start and $end (seconds
     since epoch) given the parameters specified in the Time::Business->new.
 
+  workTimeString($seconds) - Convert seconds to human readable work time.
+    Converts the $seconds given to a string of the form "n days n hours n
+    minutes". NOTE: This conversion is based on business hours so one day is
+    one working day, not one 24 hour day. Useful for reports etc.
+
 SUPPORT
 AUTHOR
         David Peters

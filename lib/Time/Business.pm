@@ -5,7 +5,7 @@ use strict;
 BEGIN {
     use Exporter ();
     use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @endtime);
-    $VERSION     = '0.11';
+    $VERSION     = '0.12';
     @ISA         = qw(Exporter);
     #Give a hoot don't pollute, do not export more than needed by default
     @EXPORT      = qw();
@@ -178,6 +178,11 @@ where WORKDAYS is specified as a list of 0..6 where Sun is 0 and Sat is 6.
 Returns the number of business seconds between $start and $end (seconds since epoch)
 given the parameters specified in the Time::Business->new.   
 
+=head2 workTimeString($seconds) - Convert seconds to human readable work time.
+
+Converts the $seconds given to a string of the form "n days n hours n minutes".
+NOTE: This conversion is based on business hours so one day is one working
+day, not one 24 hour day. Useful for reports etc. 
 
 =head1 SUPPORT
 
