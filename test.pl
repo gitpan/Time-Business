@@ -8,6 +8,6 @@ my $bustime = Time::Business->new({
 	ENDTIME=>"17:00",
 	WORKDAYS=>[1,2,3,4,5]
 });
-
-	my $seconds = $bustime->duration(time(),time()+(8*3600+12*60+33));
+	my $seconds = $bustime->duration(1264660530,1264713701);
+	print $seconds . "\n";
 	print $bustime->workTimeString($seconds) . "\n";
