@@ -3,7 +3,6 @@ lib/Time/Business.pm
 LICENSE
 Makefile.PL
 MANIFEST
-MANIFEST.SKIP
 README
 t/001_load.t
 test.pl

@@ -5,7 +5,7 @@ use strict;
 BEGIN {
     use Exporter ();
     use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @endtime);
-    $VERSION     = '0.13';
+    $VERSION     = '0.15';
     @ISA         = qw(Exporter);
     #Give a hoot don't pollute, do not export more than needed by default
     @EXPORT      = qw();
@@ -57,42 +57,49 @@ sub duration {
 
 	
 	
-	
+	$daysleft = $dyday % 7;
+
 	if($eyday - $syday >= 2) { 
-		$daysin = int($dyday / 7) * 5;
+		
+		$daysin = int(($dyday) / 7) * 5 ;
 		$daysleft = $dyday % 7;
+		
+		if($daysleft==0) {
+			$daysin = $daysin - 1;
+			$daysleft++;
+		}
 			
-		my $startloop = ($swday)%7;
+		my $startloop = ($swday)%7+1;
 		my $endloop = $startloop + $daysleft - 1;
 	
-		for (my $i = $startloop;$i<=$endloop;$i++) {
+		for (my $i = $startloop;$i<$endloop;$i++) {
 			my $wday = $i%7;
 			if(defined $self->{WORKDAYS}->{$wday}) {
 				$daysin++;
+						
 			}
 		}
 		
-	
+		
 		
 	} 
 	
 		
 	# Count valid hours in first day
 	my $seconds = 0;
-	if($duration != ($dyday * 24 * 60 * 60)) {
-		
-		
+	if($end - $start > ($daysin*86400) ) {
+				
 		if( defined $self->{WORKDAYS}->{$swday}) {
+		
+		
 		
 			my $end_seconds = $ehour * 3600 + $emin * 60 + $esec;
 			my $start_seconds = $shour * 3600 + $smin * 60 + $ssec;
 			my $end_day = $endtime[0] * 3600 + $endtime[1] * 60;
-
-			
+				
 			if(($end_seconds > $end_day) || $eyday - $syday >= 1 ) {
 				$end_seconds = $end_day;
 			}
-			
 			
 			if($start_seconds < $end_day ) {
 				$seconds = $end_seconds - $start_seconds;
@@ -101,9 +108,8 @@ sub duration {
 		}
 			
 		# Count valid hours in last day
-		if($eyday > $syday && defined $self->{WORKDAYS}->{$ewday}  ) {
-	
-	
+		if(($eyday - $syday >= 1) && defined $self->{WORKDAYS}->{$ewday}  ) {
+			
 			if($ehour * 60 + $emin >= $self->{startworkmin}) {
 	
 									
@@ -112,6 +118,7 @@ sub duration {
 					$seconds = $seconds + ($end_seconds - $start_seconds);
 		
 			}
+
 		}
 	}
 	
