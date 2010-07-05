@@ -4,8 +4,8 @@ use strict;
 
 BEGIN {
     use Exporter ();
-    use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @endtime);
-    $VERSION     = '0.15';
+    use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @endtime $debug);
+    $VERSION     = '0.16';
     @ISA         = qw(Exporter);
     #Give a hoot don't pollute, do not export more than needed by default
     @EXPORT      = qw();
@@ -16,13 +16,15 @@ BEGIN {
 
 sub new
 {
+	
+	
     my ($class, $parameters) = @_;
 
     my $self = bless ({}, ref ($class) || $class);
 	
 	$self->{STARTTIME} = $parameters->{STARTTIME};
 	$self->{ENDTIME} = $parameters->{ENDTIME};
-	
+
 	foreach my $workday (@{$parameters->{WORKDAYS}}){
 		$self->{WORKDAYS}->{$workday}=1;
 	}
@@ -33,6 +35,8 @@ sub new
 	$self->{worksecs} = ($endtime[0] - $starttime[0]) * 3600 + ($endtime[1] - $starttime[1]) * 60;
 	$self->{startworkmin} = $starttime[0] * 60 + $starttime[1];
 	$self->{endworkmin} = $endtime[0] * 60 + $endtime[1];
+	
+	$debug = 1;
 	
 	
 	return $self;
@@ -91,23 +95,26 @@ sub duration {
 				
 		if( defined $self->{WORKDAYS}->{$swday}) {
 		
-		
-		
+	
+			
 			my $end_seconds = $ehour * 3600 + $emin * 60 + $esec;
 			my $start_seconds = $shour * 3600 + $smin * 60 + $ssec;
+			my $start_day = $starttime[0] * 3600 + $starttime[1] * 60;
 			my $end_day = $endtime[0] * 3600 + $endtime[1] * 60;
 				
 			if(($end_seconds > $end_day) || $eyday - $syday >= 1 ) {
 				$end_seconds = $end_day;
 			}
 			
-			if($start_seconds < $end_day ) {
+			if($start_seconds < $end_day && $start_seconds > $start_day ) {
 				$seconds = $end_seconds - $start_seconds;
+				
 			}
 			
 		}
 			
 		# Count valid hours in last day
+		
 		if(($eyday - $syday >= 1) && defined $self->{WORKDAYS}->{$ewday}  ) {
 			
 			if($ehour * 60 + $emin >= $self->{startworkmin}) {
@@ -141,6 +148,15 @@ sub workTimeString {
 	return "$days days $shour hours $smin minutes";
 }
 
+sub debug {
+	
+	my $debugmsg = shift;
+	
+	if($debug == 1) {
+		print  $debugmsg . "\n";
+	};
+	
+}
 
 =head1 NAME
 

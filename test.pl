@@ -1,6 +1,7 @@
 #!/usr/local/bin/perl
 
 use Time::Business;
+use HTTP::Date;
 
 
 my $bustime = Time::Business->new({
@@ -10,10 +11,11 @@ my $bustime = Time::Business->new({
 });
 	
 
-for(my $days=0;$days<=16;$days++) {
 
-	my $end = time()+86400*$days + 3700;
+
+	my $end = str2time("Tue 29 Jun 2010 00:31");
+	my $start = str2time("Tue 29 Jun 2010 00:30");
 	print scalar localtime($end) . "\n";
-	my $seconds = $bustime->duration(time(),$end);
-	print $bustime->workTimeString($seconds) . "\n";
-}
+	my $seconds = $bustime->duration($start,$end);
+	print $seconds . "\n";
+
