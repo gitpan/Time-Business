@@ -1,11 +1,10 @@
 package Time::Business;
-use Data::Dumper;
 use strict;
 
 BEGIN {
     use Exporter ();
-    use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @endtime $debug);
-    $VERSION     = '0.16';
+    use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @stoptime);
+    $VERSION     = '0.17';
     @ISA         = qw(Exporter);
     #Give a hoot don't pollute, do not export more than needed by default
     @EXPORT      = qw();
@@ -23,21 +22,18 @@ sub new
     my $self = bless ({}, ref ($class) || $class);
 	
 	$self->{STARTTIME} = $parameters->{STARTTIME};
-	$self->{ENDTIME} = $parameters->{ENDTIME};
+	$self->{STOPTIME} = $parameters->{STOPTIME};
 
 	foreach my $workday (@{$parameters->{WORKDAYS}}){
 		$self->{WORKDAYS}->{$workday}=1;
 	}
 	
 	@starttime = split /:/, $self->{STARTTIME};
-	@endtime = split /:/, $self->{ENDTIME}; 
+	@stoptime = split /:/, $self->{STOPTIME}; 
 		
-	$self->{worksecs} = ($endtime[0] - $starttime[0]) * 3600 + ($endtime[1] - $starttime[1]) * 60;
+	$self->{worksecs} = ($stoptime[0] - $starttime[0]) * 3600 + ($stoptime[1] - $starttime[1]) * 60;
 	$self->{startworkmin} = $starttime[0] * 60 + $starttime[1];
-	$self->{endworkmin} = $endtime[0] * 60 + $endtime[1];
-	
-	$debug = 1;
-	
+	$self->{stopworkmin} = $stoptime[0] * 60 + $stoptime[1];
 	
 	return $self;
     
@@ -46,25 +42,21 @@ sub new
 sub duration {
 	
 	my $self =shift;
-	my($start,$end) = @_;
+	my($start,$stop) = @_;
 	
-	my $duration = $end - $start;
-	
-	
+	my $duration = $stop - $start;
 	
 	my ($ssec,$smin,$shour,$smday,$smon,$syear,$swday,$syday,$sisdst) = localtime($start);
-	my ($esec,$emin,$ehour,$emday,$emon,$eyear,$ewday,$eyday,$eisdst) = localtime($end);
+	my ($esec,$emin,$ehour,$emday,$emon,$eyear,$ewday,$eyday,$eisdst) = localtime($stop);
 	my ($dsec,$dmin,$dhour,$dmday,$dmon,$dyear,$dwday,$dyday,$disdst) = localtime($duration);
 
 	my $daysin;
 	my $daysleft;
 
-	
-	
 	$daysleft = $dyday % 7;
 
-	if($eyday - $syday >= 2) { 
-		
+	if($dyday >= 2) { 
+
 		$daysin = int(($dyday) / 7) * 5 ;
 		$daysleft = $dyday % 7;
 		
@@ -83,30 +75,25 @@ sub duration {
 						
 			}
 		}
-		
-		
-		
 	} 
 	
 		
 	# Count valid hours in first day
 	my $seconds = 0;
-	if($end - $start > ($daysin*86400) ) {
+	if($duration > ($daysin*86400) ) {
 				
 		if( defined $self->{WORKDAYS}->{$swday}) {
 		
-	
-			
 			my $end_seconds = $ehour * 3600 + $emin * 60 + $esec;
 			my $start_seconds = $shour * 3600 + $smin * 60 + $ssec;
 			my $start_day = $starttime[0] * 3600 + $starttime[1] * 60;
-			my $end_day = $endtime[0] * 3600 + $endtime[1] * 60;
+			my $stop_day = $stoptime[0] * 3600 + $stoptime[1] * 60;
 				
-			if(($end_seconds > $end_day) || $eyday - $syday >= 1 ) {
-				$end_seconds = $end_day;
+			if(($end_seconds > $stop_day) || $eyday - $syday >= 1 ) {
+				$end_seconds = $stop_day;
 			}
 			
-			if($start_seconds < $end_day && $start_seconds > $start_day ) {
+			if($start_seconds < $stop_day && $start_seconds > $start_day ) {
 				$seconds = $end_seconds - $start_seconds;
 				
 			}
@@ -122,6 +109,12 @@ sub duration {
 									
 					my $start_seconds = $starttime[0] * 3600 + $starttime[1] * 60;
 					my $end_seconds = $ehour * 3600 + $emin * 60 + $esec;
+ 					my $stop_day = $stoptime[0] * 3600 + $stoptime[1] * 60;
+
+ 					if($end_seconds > $stop_day) {
+						$end_seconds = $stop_day;
+					}
+
 					$seconds = $seconds + ($end_seconds - $start_seconds);
 		
 			}
@@ -148,15 +141,6 @@ sub workTimeString {
 	return "$days days $shour hours $smin minutes";
 }
 
-sub debug {
-	
-	my $debugmsg = shift;
-	
-	if($debug == 1) {
-		print  $debugmsg . "\n";
-	};
-	
-}
 
 =head1 NAME
 
@@ -167,14 +151,14 @@ Time::Business - Business Time Between Two Times
   use Time::Business;
   
   my $btime = Time::Business->new({
-  		WORKDAYS=>[1,2,3,4,5],
-  		STARTIME=>900,
-  		ENDTIME=>1700,
-  	})
+  		WORKDAYS  => [1,2,3,4,5],
+  		STARTTIME => '9:00',
+  		STOPTIME  => '17:00',
+  	});
 
-  $start=time();
+  $begin=time();
   $end=time()+86400;
-  $seconds = $btime->calctime($start,$end);
+  $seconds = $btime->calctime($begin,$end);
 
 =head1 DESCRIPTION
 
@@ -190,17 +174,17 @@ Setup a Time::Business object, passing the working time parameters.
 eg.
 
  my $btime = Time::Business->new({
-  		WORKDAYS=>[1,2,3,4,5],
-  		STARTIME=>'9:00',
-  		STOPTIME=>'17:00',
-  	})
+  		WORKDAYS  => [1,2,3,4,5],
+  		STARTTIME => '9:00',
+  		STOPTIME  => '17:00',
+  	});
 
 where WORKDAYS is specified as a list of 0..6 where Sun is 0 and Sat is 6. 
 
 
-=head2 duration($start,$end) - Return number of business seconds.
+=head2 duration($begin,$end) - Return number of business seconds.
   
-Returns the number of business seconds between $start and $end (seconds since epoch)
+Returns the number of business seconds between $begin and $end (seconds since epoch)
 given the parameters specified in the Time::Business->new.   
 
 =head2 workTimeString($seconds) - Convert seconds to human readable work time.
