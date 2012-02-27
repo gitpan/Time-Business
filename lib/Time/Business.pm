@@ -4,7 +4,7 @@ use strict;
 BEGIN {
     use Exporter ();
     use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS @starttime @stoptime);
-    $VERSION     = '0.17';
+    $VERSION     = '0.18';
     @ISA         = qw(Exporter);
     #Give a hoot don't pollute, do not export more than needed by default
     @EXPORT      = qw();
@@ -21,8 +21,8 @@ sub new
 
     my $self = bless ({}, ref ($class) || $class);
 	
-	$self->{STARTTIME} = $parameters->{STARTTIME};
-	$self->{STOPTIME} = $parameters->{STOPTIME};
+	$self->{STARTTIME} = $parameters->{STARTTIME} || "00:00:00";
+	$self->{STOPTIME} = $parameters->{STOPTIME} || "00:00:00";
 
 	foreach my $workday (@{$parameters->{WORKDAYS}}){
 		$self->{WORKDAYS}->{$workday}=1;
